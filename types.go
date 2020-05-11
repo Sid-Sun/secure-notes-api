@@ -34,6 +34,7 @@ type updateNoteType struct {
 	ID   string
 	Pass string
 	Note string
+	NewPass string
 }
 
 type updateNoteResponse struct {

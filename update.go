@@ -25,6 +25,10 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 	if !storedDataEmpty(db[updateNoteInstance.ID]) {
 		_, err := verifyNotePassword(db[updateNoteInstance.ID], updateNoteInstance.Pass)
 		if err == nil {
+			// If NewPass is supplied, set pass as newpass before encrypting
+			if updateNoteInstance.NewPass != "" {
+				updateNoteInstance.Pass = updateNoteInstance.NewPass
+			}
 			AAD, hash, encryptedNote := encrypt(updateNoteInstance.Note, updateNoteInstance.Pass)
 
 			// Save AAD, AAD Hash and Encrypted note in db map
@@ -60,7 +64,7 @@ func updateNotePass(w http.ResponseWriter, r *http.Request) {
 
 	// If ID or password are empty, return with empty ID
 	// To indicate failure
-	if updateNoteInstance.ID == "" || updateNoteInstance.Pass == "" || updateNoteInstance.NewPass == "" {
+	if updateNoteInstance.ID == "" || updateNoteInstance.Pass == "" || updateNoteInstance.NewPass == "" || updateNoteInstance.NewPass == updateNoteInstance.Pass {
 		output, _ := json.Marshal(updateNotePassResponse{
 			ID: "",
 		})
