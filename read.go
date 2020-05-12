@@ -12,8 +12,7 @@ func getData(w http.ResponseWriter, r *http.Request) {
 	getDataInstance := getDataType{}
 	json.Unmarshal(reqBody, &getDataInstance)
 
-	// If ID or password are empty, return with empty ID
-	// To indicate failure
+	// If ID or password are empty, return with empty ID to indicate failure
 	if getDataInstance.ID == "" || getDataInstance.Pass == "" {
 		output, _ := json.Marshal(getDataResponse{
 			ID:   "",
@@ -24,15 +23,16 @@ func getData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if there is any data with supplied ID
-	// TODO: CHECK FOR WEIRD RANDOM CONSECUTIVE RESPONSES
 	if !storedDataEmpty(db[getDataInstance.ID]) {
+		// If so, verify pass and store decrypted AAD
 		AAD, err := verifyNotePassword(db[getDataInstance.ID], getDataInstance.Pass)
 		if err == nil {
-			// Verification successful, decrypt data and send response
+			// Verification successful, decrypt data and send response with ID
 			output, _ := json.Marshal(getDataResponse{
 				ID:   getDataInstance.ID,
 				Note: decrypt(db[getDataInstance.ID], AAD),
 			})
+
 			_, _ = fmt.Fprintf(w, "%+v", string(output))
 			return
 		}

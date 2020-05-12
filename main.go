@@ -19,6 +19,7 @@ func main() {
 	}
 	fmt.Println("Starting on port:", port)
 
+	// Create new router and define routes
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/", greet).Methods("GET")
 	myRouter.HandleFunc("/set", setData).Methods("POST")

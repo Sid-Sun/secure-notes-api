@@ -12,8 +12,7 @@ func setData(w http.ResponseWriter, r *http.Request) {
 	setDataInstance := setDataType{}
 	json.Unmarshal(reqBody, &setDataInstance)
 
-	// If note or password are empty, return with empty ID
-	// To suggest failure
+	// If note or password are empty, return with empty ID to suggest failure
 	if setDataInstance.Note == "" || setDataInstance.Pass == "" {
 		output, _ := json.Marshal(setDataResponse{
 			ID: "",
@@ -22,11 +21,12 @@ func setData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If ID is empty, create a 6 random 6 character one
+	// If ID is empty, create an 8 character random one
 	if setDataInstance.ID == "" || !storedDataEmpty(db[setDataInstance.ID]) {
 		setDataInstance.ID = randString(8)
 	}
 
+	// Encrypt note with pass and fetch AAD, hash and ecryptedNote
 	AAD, hash, encryptedNote := encrypt(setDataInstance.Note, setDataInstance.Pass)
 
 	// Save AAD, AAD Hash and Encrypted note in db map

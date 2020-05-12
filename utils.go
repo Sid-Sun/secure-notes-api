@@ -16,6 +16,8 @@ import (
 var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 func decrypt(data storedData, decryptedAAD []byte) string {
+	// Create new encrypted note and explicitly copy
+	// Cuz else we'd replace Note with possibly corrupted or decrypted data
 	encryptedNote := make([]byte, len(data.Note))
 	copy(encryptedNote, data.Note)
 
@@ -29,6 +31,7 @@ func decrypt(data storedData, decryptedAAD []byte) string {
 }
 
 func verifyNotePassword(data storedData, password string) ([]byte, error) {
+	// Hash pass, make cipher from hash and make var for decryptedAAD output
 	key := sha3.Sum256([]byte(password))
 	blockCipher, _ := aes.NewCipher(key[:])
 	decryptedAAD := make([]byte, aes.BlockSize)
@@ -37,9 +40,13 @@ func verifyNotePassword(data storedData, password string) ([]byte, error) {
 	blockCipher.Decrypt(decryptedAAD, data.AADData)
 	decryptedAADHash := sha3.Sum256(decryptedAAD)
 
+	// If hashed hash of decrypted AAD matches with stored AAD, we have a Match!
+	// And yes - that is a Tinder reference thanks to @black-dragon74
 	if bytes.Equal(data.AADHash[:], decryptedAADHash[:]) {
 		return decryptedAAD, nil
 	}
+
+
 	return []byte{}, errors.New("Incorrect Password")
 }
 
@@ -53,7 +60,7 @@ func encrypt(note string, password string) ([]byte, [32]byte, []byte) {
 	}
 
 	// Create dst with length of aes blocksize + note length
-	// And initialize first 16 bytes randonly for IV
+	// And initialize first BlockSize bytes randonly for IV
 	dst := make([]byte, aes.BlockSize+len([]byte(note)))
 	if _, err := io.ReadFull(rand.Reader, dst[:aes.BlockSize]); err != nil {
 		panic(err.Error())
@@ -81,6 +88,7 @@ func randString(n int) string {
 	for i := range b {
 		b[i] = letters[mathRand.Intn(len(letters))]
 	}
+	// If data with random ID exists in DB, regenerate
 	if !storedDataEmpty(db[string(b)]) {
 		return randString(n)
 	}
@@ -88,6 +96,8 @@ func randString(n int) string {
 }
 
 func storedDataEmpty(a storedData) bool {
+	// If any of the fields are empty
+	// The data is considered as empty
 	if bytes.Equal(a.AADData, []byte{}) {
 		return true
 	}

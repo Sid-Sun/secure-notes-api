@@ -12,8 +12,7 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 	updateNoteInstance := updateNoteType{}
 	json.Unmarshal(reqBody, &updateNoteInstance)
 
-	// If note or password are empty, return with empty ID
-	// To suggest failure
+	// If note, password or id are empty, return with empty ID To suggest failure
 	if updateNoteInstance.Note == "" || updateNoteInstance.Pass == "" || updateNoteInstance.ID == "" {
 		output, _ := json.Marshal(updateNoteResponse{
 			ID: "",
@@ -23,6 +22,8 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !storedDataEmpty(db[updateNoteInstance.ID]) {
+		// If note with ID exists in DB, verify its password 
+		// And throw the AAD - we don't need it to replace note
 		_, err := verifyNotePassword(db[updateNoteInstance.ID], updateNoteInstance.Pass)
 		if err == nil {
 			// If NewPass is supplied, set pass as newpass before encrypting
@@ -31,14 +32,14 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 			}
 			AAD, hash, encryptedNote := encrypt(updateNoteInstance.Note, updateNoteInstance.Pass)
 
-			// Save AAD, AAD Hash and Encrypted note in db map
+			// Save new AAD, AAD Hash and Encrypted note in DB map
 			db[updateNoteInstance.ID] = storedData{
 				AADData: AAD,
 				AADHash: hash,
 				Note:    encryptedNote,
 			}
 
-			// On success, respond with proper ID
+			// On success, respond with original ID
 			output, _ := json.Marshal(updateNoteResponse{
 				ID: updateNoteInstance.ID,
 			})
@@ -62,8 +63,8 @@ func updateNotePass(w http.ResponseWriter, r *http.Request) {
 	updateNoteInstance := updateNotePassType{}
 	json.Unmarshal(reqBody, &updateNoteInstance)
 
-	// If ID or password are empty, return with empty ID
-	// To indicate failure
+	// If ID, Pass or newPass are empty or newpass is the same as old pass
+	// Return with empty ID To indicate failure
 	if updateNoteInstance.ID == "" || updateNoteInstance.Pass == "" || updateNoteInstance.NewPass == "" || updateNoteInstance.NewPass == updateNoteInstance.Pass {
 		output, _ := json.Marshal(updateNotePassResponse{
 			ID: "",
@@ -74,21 +75,25 @@ func updateNotePass(w http.ResponseWriter, r *http.Request) {
 
 	// Check if there is any data with supplied ID
 	if !storedDataEmpty(db[updateNoteInstance.ID]) {
+		// If note with ID exists in DB, verify its password 
+		// And take decrypted AAD
 		AAD, err := verifyNotePassword(db[updateNoteInstance.ID], updateNoteInstance.Pass)
 		if err == nil {
+			// If verfication was successful, decrypt the note and ecrypt it with new pass
 			AAD, hash, encryptedNote := encrypt(decrypt(db[updateNoteInstance.ID], AAD), updateNoteInstance.NewPass)
 
-			// Save AAD, AAD Hash and Encrypted note in db map
+			// Save new AAD, AAD Hash and Encrypted note in DB map
 			db[updateNoteInstance.ID] = storedData{
 				AADData: AAD,
 				AADHash: hash,
 				Note:    encryptedNote,
 			}
 
-			// Verification successful, decrypt data and send response
+			// On success, respond with original ID
 			output, _ := json.Marshal(updateNotePassResponse{
 				ID: updateNoteInstance.ID,
 			})
+
 			_, _ = fmt.Fprintf(w, "%+v", string(output))
 			return
 		}
