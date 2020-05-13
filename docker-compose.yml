@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    env_file: auth.env
+    environment: 
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US:en
+      LC_ALL: en_US.UTF-8
+
+  api:
+    depends_on: 
+      - postgres
+    restart: always
+    build: .
+    env_file: auth.env
+    ports:
+      - 1234:8990
