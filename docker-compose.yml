@@ -14,7 +14,7 @@ services:
     depends_on: 
       - postgres
     restart: always
-    build: .
+    image: realsidsun/secure-notes-api
     env_file: auth.env
     ports:
       - 1234:8990
