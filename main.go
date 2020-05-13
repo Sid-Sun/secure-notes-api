@@ -9,10 +9,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var db = make(map[string]storedData)
-
 func main() {
 	fmt.Println("Hello, World!")
+
+	err := initDB()
+	if err != nil {
+		panic(err)
+	}
+
 	port := "8990"
 	if len(os.Args) > 1 {
 		port = os.Args[1]
@@ -29,7 +33,7 @@ func main() {
 	myRouter.HandleFunc("/get", getData).Methods("GET")
 
 	http.Handle("/", myRouter)
-	err := http.ListenAndServe(":"+port, myRouter)
+	err = http.ListenAndServe(":"+port, myRouter)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

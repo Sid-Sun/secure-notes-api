@@ -2,7 +2,7 @@ package main
 
 type storedData struct {
 	AADData []byte
-	AADHash [32]byte
+	AADHash []byte
 	Note    []byte
 }
 

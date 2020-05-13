@@ -46,7 +46,6 @@ func verifyNotePassword(data storedData, password string) ([]byte, error) {
 		return decryptedAAD, nil
 	}
 
-
 	return []byte{}, errors.New("Incorrect Password")
 }
 
@@ -89,23 +88,8 @@ func randString(n int) string {
 		b[i] = letters[mathRand.Intn(len(letters))]
 	}
 	// If data with random ID exists in DB, regenerate
-	if !storedDataEmpty(db[string(b)]) {
+	if exists, _ := existsInDB(string(b)); exists {
 		return randString(n)
 	}
 	return string(b)
-}
-
-func storedDataEmpty(a storedData) bool {
-	// If any of the fields are empty
-	// The data is considered as empty
-	if bytes.Equal(a.AADData, []byte{}) {
-		return true
-	}
-	if bytes.Equal(a.AADHash[:], []byte{}) {
-		return true
-	}
-	if bytes.Equal(a.Note, []byte{}) {
-		return true
-	}
-	return false
 }
