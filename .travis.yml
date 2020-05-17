@@ -1,0 +1,17 @@
+sudo: required
+language: go
+services:
+  - docker
+branches:
+  only:
+  - master
+
+get_deps:
+  - go get github.com/gorilla/mux
+  - go get github.com/lib/pq
+  - go get golang.org/x/crypto/sha3
+
+after_success:
+  - docker build -t realsidsun/secure-notes-api .
+  - echo $DOCKER_PASSWORD | docker login -u $DOCKER_ID --password-stdin
+  - docker push realsidsun/secure-notes-api
