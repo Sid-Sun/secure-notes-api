@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  api:
+    restart: always
+    build: .
+    env_file: auth.env
+    ports:
+      - 1234:8990
