@@ -34,10 +34,11 @@ func verifyNotePassword(data storedData, password string) ([]byte, error) {
 	// Hash pass, make cipher from hash and make var for decryptedAAD output
 	key := sha3.Sum256([]byte(password))
 	blockCipher, _ := aes.NewCipher(key[:])
-	decryptedAAD := make([]byte, aes.BlockSize)
+	decryptedAAD := make([]byte, 32)
 
 	// Decrypt AAD & Hash it
-	blockCipher.Decrypt(decryptedAAD, data.AADData)
+	blockCipher.Decrypt(decryptedAAD[:aes.BlockSize], data.AADData[:aes.BlockSize])
+	blockCipher.Decrypt(decryptedAAD[aes.BlockSize:], data.AADData[aes.BlockSize:])
 	decryptedAADHash := sha3.Sum256(decryptedAAD)
 
 	// If hashed hash of decrypted AAD matches with stored AAD, we have a Match!
@@ -46,15 +47,12 @@ func verifyNotePassword(data storedData, password string) ([]byte, error) {
 		return decryptedAAD, nil
 	}
 
-
 	return []byte{}, errors.New("Incorrect Password")
 }
 
 func encrypt(note string, password string) ([]byte, [32]byte, []byte) {
-	// Generate additional auth data of AES blocksize
-	// We cannot use 256-Bit keys for encryption
-	// Without switching to CFB for AAD encryption
-	AAD := make([]byte, aes.BlockSize)
+	// Generate additional auth data of 256 Bits
+	AAD := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, AAD); err != nil {
 		panic(err.Error())
 	}
@@ -77,7 +75,8 @@ func encrypt(note string, password string) ([]byte, [32]byte, []byte) {
 	// Create blockCipher with hash of supplied password and encrypt AAD
 	key := sha3.Sum256([]byte(password))
 	blockCipher, _ = aes.NewCipher(key[:])
-	blockCipher.Encrypt(AAD, AAD)
+	blockCipher.Encrypt(AAD[:aes.BlockSize], AAD[:aes.BlockSize])
+	blockCipher.Encrypt(AAD[aes.BlockSize:], AAD[aes.BlockSize:])
 
 	return AAD, aadHash, dst
 }
