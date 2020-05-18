@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"secure-notes-api/db"
 )
 
 func setData(w http.ResponseWriter, r *http.Request) {
@@ -14,15 +15,16 @@ func setData(w http.ResponseWriter, r *http.Request) {
 
 	// If note or password are empty, return with empty ID to suggest failure
 	if setDataInstance.Note == "" || setDataInstance.Pass == "" {
-		output, _ := json.Marshal(setDataResponse{
-			ID: "",
-		})
-		_, _ = fmt.Fprintf(w, "%+v", string(output))
+		emptySetDataResponse(w)
 		return
 	}
 
 	// If ID is empty, create an 8 character random one
-	if setDataInstance.ID == "" || !storedDataEmpty(db[setDataInstance.ID]) {
+	if exists, err := dbInstance.Exists(setDataInstance.ID); exists || setDataInstance.ID == "" {
+		if err != nil {
+			emptySetDataResponse(w)
+			return
+		}
 		setDataInstance.ID = randString(8)
 	}
 
@@ -30,10 +32,13 @@ func setData(w http.ResponseWriter, r *http.Request) {
 	AAD, hash, encryptedNote := encrypt(setDataInstance.Note, setDataInstance.Pass)
 
 	// Save AAD, AAD Hash and Encrypted note in db map
-	db[setDataInstance.ID] = storedData{
+	if err := dbInstance.Set(setDataInstance.ID, db.StoredData{
 		AADData: AAD,
 		AADHash: hash,
 		Note:    encryptedNote,
+	}); err != nil {
+		emptySetDataResponse(w)
+		return
 	}
 
 	// On success, respond with proper ID
@@ -41,5 +46,12 @@ func setData(w http.ResponseWriter, r *http.Request) {
 		ID: setDataInstance.ID,
 	})
 
+	_, _ = fmt.Fprintf(w, "%+v", string(output))
+}
+
+func emptySetDataResponse(w http.ResponseWriter) {
+	output, _ := json.Marshal(setDataResponse{
+		ID: "",
+	})
 	_, _ = fmt.Fprintf(w, "%+v", string(output))
 }

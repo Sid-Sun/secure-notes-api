@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	mathRand "math/rand"
+	"secure-notes-api/db"
 	"time"
 
 	"golang.org/x/crypto/sha3"
@@ -15,7 +16,7 @@ import (
 
 var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-func decrypt(data storedData, decryptedAAD []byte) string {
+func decrypt(data db.StoredData, decryptedAAD []byte) string {
 	// Create new encrypted note and explicitly copy
 	// Cuz else we'd replace Note with possibly corrupted or decrypted data
 	encryptedNote := make([]byte, len(data.Note))
@@ -30,7 +31,7 @@ func decrypt(data storedData, decryptedAAD []byte) string {
 	return string(encryptedNote[aes.BlockSize:])
 }
 
-func verifyNotePassword(data storedData, password string) ([]byte, error) {
+func verifyNotePassword(data db.StoredData, password string) ([]byte, error) {
 	// Hash pass, make cipher from hash and make var for decryptedAAD output
 	key := sha3.Sum256([]byte(password))
 	blockCipher, _ := aes.NewCipher(key[:])
@@ -88,23 +89,8 @@ func randString(n int) string {
 		b[i] = letters[mathRand.Intn(len(letters))]
 	}
 	// If data with random ID exists in DB, regenerate
-	if !storedDataEmpty(db[string(b)]) {
+	if exists, err := dbInstance.Exists(string(b)); exists && err == nil {
 		return randString(n)
 	}
 	return string(b)
-}
-
-func storedDataEmpty(a storedData) bool {
-	// If any of the fields are empty
-	// The data is considered as empty
-	if bytes.Equal(a.AADData, []byte{}) {
-		return true
-	}
-	if bytes.Equal(a.AADHash[:], []byte{}) {
-		return true
-	}
-	if bytes.Equal(a.Note, []byte{}) {
-		return true
-	}
-	return false
 }

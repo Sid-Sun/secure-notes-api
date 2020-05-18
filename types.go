@@ -1,11 +1,5 @@
 package main
 
-type storedData struct {
-	AADData []byte
-	AADHash [32]byte
-	Note    []byte
-}
-
 type greetResponse struct {
 	Message string
 }

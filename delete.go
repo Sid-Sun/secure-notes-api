@@ -14,22 +14,27 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 
 	// If ID or password are empty, return with empty ID to indicate failure
 	if deleteNoteInstance.ID == "" || deleteNoteInstance.Pass == "" {
-		output, _ := json.Marshal(deleteNoteResponse{
-			ID: "",
-		})
-
-		_, _ = fmt.Fprintf(w, "%+v", string(output))
+		emptyDeleteResponse(w)
 		return
 	}
 
 	// Check if there is any data with supplied ID
-	if !storedDataEmpty(db[deleteNoteInstance.ID]) {
-		// If note with ID exists in DB, verify its password 
+	if exists, err := dbInstance.Exists(deleteNoteInstance.ID); exists && err == nil {
+		// If note with ID exists in DB, verify its password
 		// And throw the AAD - we don't need it to delete note
-		_, err := verifyNotePassword(db[deleteNoteInstance.ID], deleteNoteInstance.Pass)
+		data, err := dbInstance.Get(deleteNoteInstance.ID)
+		if err != nil {
+			emptyDeleteResponse(w)
+			return
+		}
+		_, err = verifyNotePassword(data, deleteNoteInstance.Pass)
 		if err == nil {
 			// If verification was successful, replace note with empty zer-valued storedData
-			db[deleteNoteInstance.ID] = storedData{}
+
+			if err := dbInstance.Delete(deleteNoteInstance.ID); err != nil {
+				emptyDeleteResponse(w)
+				return
+			}
 
 			// Respond with original ID to indicate success
 			output, _ := json.Marshal(deleteNoteResponse{
@@ -43,8 +48,13 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 
 	// If ID does not exist in DB / pass is incorrect
 	// Return with empty ID to indicate error
+	emptyDeleteResponse(w)
+}
+
+func emptyDeleteResponse(w http.ResponseWriter) {
 	output, _ := json.Marshal(deleteNoteResponse{
 		ID: "",
 	})
+
 	_, _ = fmt.Fprintf(w, "%+v", string(output))
 }

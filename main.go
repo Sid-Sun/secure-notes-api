@@ -5,13 +5,20 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	dbPkg "secure-notes-api/db"
 
 	"github.com/gorilla/mux"
 )
 
-var db = make(map[string]storedData)
+var dbInstance dbPkg.DataBase
 
 func main() {
+	var err error
+	dbInstance, err = dbPkg.NewDB()
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println("Hello, World!")
 	port := "8990"
 	if len(os.Args) > 1 {
@@ -29,7 +36,7 @@ func main() {
 	myRouter.HandleFunc("/get", getData).Methods("GET")
 
 	http.Handle("/", myRouter)
-	err := http.ListenAndServe(":"+port, myRouter)
+	err = http.ListenAndServe(":"+port, myRouter)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
