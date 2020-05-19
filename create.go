@@ -13,16 +13,17 @@ func setData(w http.ResponseWriter, r *http.Request) {
 	setDataInstance := setDataType{}
 	json.Unmarshal(reqBody, &setDataInstance)
 
-	// If note or password are empty, return with empty ID to suggest failure
+	// If note or password are empty, return with 400
 	if setDataInstance.Note == "" || setDataInstance.Pass == "" {
-		emptySetDataResponse(w)
+		w.WriteHeader(400)
 		return
 	}
 
 	// If ID is empty, create an 8 character random one
 	if exists, err := dbInstance.Exists(setDataInstance.ID); exists || setDataInstance.ID == "" {
 		if err != nil {
-			emptySetDataResponse(w)
+			// Return with 400 if there was an error
+			w.WriteHeader(400)
 			return
 		}
 		setDataInstance.ID = randString(8)
@@ -36,22 +37,14 @@ func setData(w http.ResponseWriter, r *http.Request) {
 		AADData: AAD,
 		AADHash: hash,
 		Note:    encryptedNote,
-	}); err != nil {
-		emptySetDataResponse(w)
+	}); err == nil {
+		// On success, respond with proper ID
+		output, _ := json.Marshal(setDataResponse{
+			ID: setDataInstance.ID,
+		})
+		w.WriteHeader(200)
+		_, _ = fmt.Fprintf(w, "%+v", string(output))
 		return
 	}
-
-	// On success, respond with proper ID
-	output, _ := json.Marshal(setDataResponse{
-		ID: setDataInstance.ID,
-	})
-
-	_, _ = fmt.Fprintf(w, "%+v", string(output))
-}
-
-func emptySetDataResponse(w http.ResponseWriter) {
-	output, _ := json.Marshal(setDataResponse{
-		ID: "",
-	})
-	_, _ = fmt.Fprintf(w, "%+v", string(output))
+	w.WriteHeader(400)
 }

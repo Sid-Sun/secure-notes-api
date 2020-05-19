@@ -37,7 +37,7 @@ http://$host:$port/set
 ```
 
 
-Upon success, the Original ID is returned. **If an ID is not supplied or a note already exists with the supplied id**, A randomly generated 8 character ID is returned insted.
+Upon success, the Original ID is returned along  with `Status: 200`. **If an ID is not supplied or a note already exists with the supplied id**, A randomly generated 8 character ID is returned insted.
 
 Response on success:
 ```json
@@ -52,12 +52,8 @@ A request may fail due to any one (or all) of the following reasons:
   * The note in request is empty
   * The password in request is empty
 
-If the Request fails, the response looks like:
-```json
-{
-    "ID": ""
-}
-```
+If the Request fails, `Status: 400` is returned
+
 
 
 
@@ -79,7 +75,7 @@ http://$host:$port/get
 ```
 
 
-Upon success, the Original ID is returned along with the note.
+Upon success, the Original ID is returned along with the note with `Status: 200`.
 
 Response on success:
 ```json
@@ -97,21 +93,9 @@ A request may fail due to any one of the following reasons:
   3. The supplied ID is incorrect
   4. The supplied pass is incorrect
 
-If the Request fails due to 1 or 2, the response looks like:
-```json
-{
-    "ID": "",
-    "Note": ""
-}
-```
+If the Request fails due to 1 or 2, `Status: 400` is returned
 
-If the Request fails due to 3 or 4, the response looks like:
-```json
-{
-    "ID": "mySecretNote",
-    "Note": ""
-}
-```
+If the Request fails due to 3 or 4, `Status: 404` is returned
 
 
 
@@ -133,7 +117,7 @@ http://$host:$port/delete
 ```
 
 
-Upon success, the Original ID is returned.
+Upon success, the Original ID is returned with `Status: 200`.
 
 Response on success:
 ```json
@@ -145,17 +129,14 @@ Response on success:
 
 A request may fail due to any one of the following reasons:
 
-  * The ID in the request is empty
-  * The pass in request is empty
-  * The supplied ID is incorrect
-  * The supplied pass is incorrect
+  1. The ID in the request is empty
+  2. The pass in request is empty
+  3. The supplied ID is incorrect
+  4. The supplied pass is incorrect
 
-If the Request fails, the response looks like:
-```json
-{
-    "ID": ""
-}
-```
+If the Request fails due to 1 or 2, `Status: 400` is returned
+
+If the Request fails due to 3 or 4, `Status: 404` is returned
 
 
 
@@ -190,7 +171,7 @@ http://$host:$port/update/note
 ```
 
 
-Upon success, the Original ID is returned.
+Upon success, the Original ID is returned with `Status: 200`.
 
 Response on success:
 ```json
@@ -202,15 +183,12 @@ Response on success:
 
 A request may fail due to any one of the following reasons:
 
-  * The ID, pass or note in the request are empty
-  * The supplied ID or pass are incorrect
+  1. The ID, pass or note in the request are empty
+  2. The supplied ID or pass are incorrect
 
-If the Request fails, the response looks like:
-```json
-{
-    "ID": ""
-}
-```
+If the Request fails due to 1, `Status: 400` is returned
+
+If the Request fails due to 2, `Status: 404` is returned
 
 
 
@@ -233,7 +211,7 @@ http://$host:$port/update/pass
 ```
 
 
-Upon success, the Original ID is returned.
+Upon success, the Original ID is returned with `Status: 200`.
 
 Response on success:
 ```json
@@ -245,15 +223,12 @@ Response on success:
 
 A request may fail due to any one of the following reasons:
 
-  * The ID, pass or newpass fields are request are empty
-  * The newpass and pass fields are equal
-  * The supplied ID or pass are incorrect
+  1. The ID, pass or newpass fields are request are empty
+  2. The newpass and pass fields are equal
+  3. The supplied ID or pass are incorrect
 
-If the Request fails, the response looks like:
-```json
-{
-    "ID": ""
-}
-```
+If the Request fails due to 1 or 2, `Status: 400` is returned
+
+If the Request fails due to 3, `Status: 404` is returned
 
 ## Cheers!
