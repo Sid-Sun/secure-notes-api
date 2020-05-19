@@ -32,6 +32,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 					})
 					w.WriteHeader(200)
 					_, _ = fmt.Fprintf(w, "%+v", string(output))
+					return
 				}
 			}
 		}
