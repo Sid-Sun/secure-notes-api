@@ -14,11 +14,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 
 	// If ID or password are empty, return with empty ID to indicate failure
 	if deleteNoteInstance.ID == "" || deleteNoteInstance.Pass == "" {
-		output, _ := json.Marshal(deleteNoteResponse{
-			ID: "",
-		})
-
-		_, _ = fmt.Fprintf(w, "%+v", string(output))
+		w.WriteHeader(400)
 		return
 	}
 
@@ -35,7 +31,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 			output, _ := json.Marshal(deleteNoteResponse{
 				ID: deleteNoteInstance.ID,
 			})
-
+			w.WriteHeader(200)
 			_, _ = fmt.Fprintf(w, "%+v", string(output))
 			return
 		}
@@ -43,8 +39,5 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 
 	// If ID does not exist in DB / pass is incorrect
 	// Return with empty ID to indicate error
-	output, _ := json.Marshal(deleteNoteResponse{
-		ID: "",
-	})
-	_, _ = fmt.Fprintf(w, "%+v", string(output))
+	w.WriteHeader(404)
 }

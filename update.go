@@ -14,10 +14,7 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 
 	// If note, password or id are empty, return with empty ID To suggest failure
 	if updateNoteInstance.Note == "" || updateNoteInstance.Pass == "" || updateNoteInstance.ID == "" {
-		output, _ := json.Marshal(updateNoteResponse{
-			ID: "",
-		})
-		_, _ = fmt.Fprintf(w, "%+v", string(output))
+		w.WriteHeader(400)
 		return
 	}
 
@@ -43,7 +40,7 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 			output, _ := json.Marshal(updateNoteResponse{
 				ID: updateNoteInstance.ID,
 			})
-
+			w.WriteHeader(200)
 			_, _ = fmt.Fprintf(w, "%+v", string(output))
 			return
 		}
@@ -51,11 +48,7 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 
 	// If ID does not exist in DB / pass is incorrect
 	// Return with empty ID to indicate error
-	output, _ := json.Marshal(updateNoteResponse{
-		ID: "",
-	})
-
-	_, _ = fmt.Fprintf(w, "%+v", string(output))
+	w.WriteHeader(404)
 }
 
 func updateNotePass(w http.ResponseWriter, r *http.Request) {
@@ -66,10 +59,7 @@ func updateNotePass(w http.ResponseWriter, r *http.Request) {
 	// If ID, Pass or newPass are empty or newpass is the same as old pass
 	// Return with empty ID To indicate failure
 	if updateNoteInstance.ID == "" || updateNoteInstance.Pass == "" || updateNoteInstance.NewPass == "" || updateNoteInstance.NewPass == updateNoteInstance.Pass {
-		output, _ := json.Marshal(updateNotePassResponse{
-			ID: "",
-		})
-		_, _ = fmt.Fprintf(w, "%+v", string(output))
+		w.WriteHeader(400)
 		return
 	}
 
@@ -93,7 +83,7 @@ func updateNotePass(w http.ResponseWriter, r *http.Request) {
 			output, _ := json.Marshal(updateNotePassResponse{
 				ID: updateNoteInstance.ID,
 			})
-
+			w.WriteHeader(200)
 			_, _ = fmt.Fprintf(w, "%+v", string(output))
 			return
 		}
@@ -101,8 +91,5 @@ func updateNotePass(w http.ResponseWriter, r *http.Request) {
 
 	// If ID does not exist in DB / pass is incorrect
 	// Return with empty ID to indicate error
-	output, _ := json.Marshal(updateNotePassResponse{
-		ID: "",
-	})
-	_, _ = fmt.Fprintf(w, "%+v", string(output))
+	w.WriteHeader(404)
 }

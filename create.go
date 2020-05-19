@@ -14,10 +14,7 @@ func setData(w http.ResponseWriter, r *http.Request) {
 
 	// If note or password are empty, return with empty ID to suggest failure
 	if setDataInstance.Note == "" || setDataInstance.Pass == "" {
-		output, _ := json.Marshal(setDataResponse{
-			ID: "",
-		})
-		_, _ = fmt.Fprintf(w, "%+v", string(output))
+		w.WriteHeader(400)
 		return
 	}
 
@@ -40,6 +37,6 @@ func setData(w http.ResponseWriter, r *http.Request) {
 	output, _ := json.Marshal(setDataResponse{
 		ID: setDataInstance.ID,
 	})
-
+	w.WriteHeader(200)
 	_, _ = fmt.Fprintf(w, "%+v", string(output))
 }

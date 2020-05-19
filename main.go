@@ -40,5 +40,6 @@ func greet(w http.ResponseWriter, r *http.Request) {
 	output, _ := json.Marshal(greetResponse{
 		Message: `Hi there, Time-Appropriate Greetings! Please consult my documentation at https://github.com/sid-sun/passwordless-notes-api to use me, developed by Sidharth Soni (Sid Sun) - sid@sidsun.com. Open Sourced under MIT.`,
 	})
+	w.WriteHeader(200)
 	_, _ = fmt.Fprintf(w, "%+v", string(output))
 }
