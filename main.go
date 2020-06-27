@@ -25,6 +25,7 @@ func main() {
 
 	// Create new router and define routes
 	myRouter := mux.NewRouter().StrictSlash(true)
+	myRouter.Use(addContentTypeHeader)
 	myRouter.HandleFunc("/", greet).Methods("GET")
 	myRouter.HandleFunc("/set", setData).Methods("POST")
 	myRouter.HandleFunc("/update/note", updateNote).Methods("PUT")
@@ -46,4 +47,12 @@ func greet(w http.ResponseWriter, r *http.Request) {
 	})
 	w.WriteHeader(200)
 	_, _ = fmt.Fprintf(w, "%+v", string(output))
+}
+
+// addContentTypeHeader acts as a middleware and adds the Content-Type header to responses
+func addContentTypeHeader(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Add("Content-Type", "application/json")
+        next.ServeHTTP(w, r)
+    })
 }
